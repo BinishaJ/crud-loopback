@@ -7,6 +7,7 @@ import {
   Where,
 } from '@loopback/repository';
 import {
+  api,
   del,
   get,
   getModelSchemaRef,
@@ -20,6 +21,9 @@ import {
 import {User} from '../models';
 import {UserRepository} from '../repositories';
 
+@api({
+  basePath: '/api/'
+})
 export class UserController {
   constructor(
     @repository(UserRepository)
@@ -120,11 +124,15 @@ export class UserController {
     @requestBody({
       content: {
         'application/json': {
-          schema: getModelSchemaRef(User, {partial: true}),
+          schema: getModelSchemaRef(User, {
+            title: 'NewUser',
+            exclude: ['_id'],
+            partial: true
+          }),
         },
       },
     })
-    user: User,
+    user: Omit<User, '_id'>
   ): Promise<void> {
     await this.userRepository.updateById(id, user);
   }
@@ -135,7 +143,16 @@ export class UserController {
   })
   async replaceById(
     @param.path.string('id') id: string,
-    @requestBody() user: User,
+    @requestBody({
+      content: {
+        'application/json': {
+          schema: getModelSchemaRef(User, {
+            exclude: ['_id'],
+          }),
+        },
+      },
+    })
+    user: Omit<User, '_id'>
   ): Promise<void> {
     await this.userRepository.replaceById(id, user);
   }
